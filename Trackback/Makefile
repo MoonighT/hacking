@@ -15,6 +15,17 @@ CFLAGS = -Wall -Werror -gdwarf-2 -O0 -m32 -fno-stack-protector -fno-omit-frame-p
 # # functions.
 # CFLAGS += -mpreferred-stack-boundary=2
 
+DOC = doxygen
+
+include config.mk
+
+TRACEBACK_OBJS = traceback/traceback_globals.o \
+				$(MY_TRACEBACK_OBJS:%=traceback/%)
+TEST_PROGS := $(TEST_PROGS:%=tests/%)
+
+
+all: $(TEST_PROGS) 
+
 %.o: %.c
 	@expand -t $(TABSTOP) $< | awk 'length > 80 \
       { err++; \
@@ -27,13 +38,23 @@ CFLAGS = -Wall -Werror -gdwarf-2 -O0 -m32 -fno-stack-protector -fno-omit-frame-p
 %.o: %.S
 	$(CC) -c -o $@ -DASSEMBLER $(CFLAGS) $(LDFLAGS) $^
 
-.PHONY: get_started update
+libtraceback.a: $(TRACEBACK_OBJS)
+	$(AR) rc libtraceback.a $(TRACEBACK_OBJS)
 
-get_started:
-	./update.sh
-	$(MAKE)
 
-update: get_started
+$(TEST_PROGS) : %: %.o libtraceback.a
+	$(CC) -o $@ $@.o -L. libtraceback.a $(CFLAGS) $(LDFLAGS) $(LIBS) -static
+	python ./symtabgen.py $@
 
 tests/add_one_test: tests/add_one.o tests/add_one_test.o
 	    $(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+clean:
+	rm -rf traceback/*.o tests/*.o \
+			libtraceback.a \
+			$(TEST_PROGS) tests/add_one_test tests/verify_test \
+			*~
+	rm -f tests/tmp-our-output tests/tmp-sample-output
+	rm -f MAKE.* RUN.*
+	rm -f */*.pyc */*/*.pyc */*/*/*.pyc
+

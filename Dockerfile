@@ -1,11 +1,17 @@
 # To build use:
 # docker build -t orian/cppenv:v1 .
 FROM ubuntu:15.04
-MAINTAINER Pawel Szczur <public at pawelsz.eu>
+MAINTAINER Han Yu <hanyu0612@gmail.com>
 
-LABEL description="A linux C++ build environment."
+LABEL description="A linux C++ python build environment."
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
+  software-properties-common \
+  python-software-properties 
+RUN add-apt-repository ppa:fkrull/deadsnakes
+RUN apt-get install -y \
   gcc \
   clang \
   cmake \
@@ -32,7 +38,8 @@ RUN apt-get update && apt-get install -y \
   libssl-dev \
   libiberty-dev \
   gdb \
-  g++-multilib 
+  g++-multilib \
+  python2.7
 
 ENV LD_LIBRARY_PATH=/libs
 ENV CPLUS_INCLUDE_PATH=/libs/include

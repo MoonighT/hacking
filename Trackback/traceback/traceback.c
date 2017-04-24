@@ -32,6 +32,8 @@ void traceback(FILE *fp)
         #ifdef __DEBUG__
             fprintf(fp, "frameaddr=%#x\n", frame);
         #endif
+        if(frame == 0) 
+            break;
         int retaddr = *((int*)(frame + sizeof(int)));
         frame = *(int *)frame;
         #ifdef __DEBUG__
@@ -54,7 +56,7 @@ void traceback(FILE *fp)
             }
         }
         // if no symbals 
-        if(functions[i].name == '\0' || i == FUNCTS_MAX_NUM)
+        if(functions[i].name[0] == '\0' || i == FUNCTS_MAX_NUM)
             fprintf(fp, "Function %#x(...), in\n", retaddr);
     }
 }
